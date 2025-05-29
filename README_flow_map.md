@@ -1,6 +1,6 @@
 # Flow Map: Event Scraping Process
 
-This document outlines the multi-stage pipeline for scraping event information.
+This document outlines the multi-stage pipeline for scraping event information. The scripts are generally run sequentially, with the output of one script serving as the input for the next. There is no master script orchestrating this flow; execution is likely manual.
 
 ## Optional Pre-Stage: General Site Discovery
 
@@ -37,12 +37,12 @@ This document outlines the multi-stage pipeline for scraping event information.
 
 ## Stage 2: Event Classification (Speculative)
 
-- **Input:** `data/extracted_events_v1.json` (or similar)
+- **Input:** `data/extracted_events_v1.json` (or, as seen in `llm_event_classifier.py`, an intermediate like `data/extracted_events_v3_final_limited.json`)
 - **Script:** `llm_event_classifier.py` (Likely)
 - **Process:**
-    1. Use LLM to analyze each candidate event (title, `source_url`).
-    2. Classify if it's a relevant event a user might attend (filters out non-events).
-- **Output:** `data/extracted_events_v4_llm_classified.json` (Refined list of event candidates, contains more qualified "Decided URLs")
+    1. Use LLM (simulated in the script) to analyze each candidate event (title, `source_url`, or `detailed_text`).
+    2. Classify if it's a relevant event a user might attend (filters out non-events) and its cost status.
+- **Output:** `data/extracted_events_v4_llm_classified.json` (Refined list of event candidates, contains more qualified "Decided URLs" and LLM-based classifications)
 
 ```
      |
@@ -70,5 +70,19 @@ This document outlines the multi-stage pipeline for scraping event information.
 - **Output:** `data/extracted_events_v4_llm_classified.json` (Overwritten with enriched event details: `detailed_text`, refined date, more accurate `is_free_indicator_present`)
 
 ```
+     |
+     V
+```
+
+## Stage 4: CSV Generation for Visualization
+
+- **Input:** `data/extracted_events_v4_llm_classified.json` (This file contains the output from Stage 3).
+- **Script:** `json_to_csv_converter.py`
+- **Process:**
+    1. Loads the JSON data.
+    2. Converts the list of event dictionaries into a Pandas DataFrame.
+    3. Saves the DataFrame to a CSV file.
+- **Output:** `data/visualization_events_data.csv` (The CSV file intended for visualization or further analysis).
 
 This textual representation should give a clearer, more diagram-like overview of the flow.
+```
